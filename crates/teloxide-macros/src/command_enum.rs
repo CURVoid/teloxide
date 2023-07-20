@@ -13,7 +13,7 @@ pub(crate) struct CommandEnum {
 impl CommandEnum {
     pub fn from_attributes(attributes: &[syn::Attribute]) -> Result<Self> {
         let attrs = CommandAttrs::from_attributes(attributes)?;
-        let CommandAttrs { prefix, description, rename_rule, rename, parser, separator, hide } =
+        let CommandAttrs { prefix, description, rename_rule, rename, parser, separator, check_start, hide } =
             attrs;
 
         if let Some((_rename, sp)) = rename {
@@ -25,6 +25,11 @@ impl CommandEnum {
             return Err(compile_error_at(
                 "`hide` attribute can only be applied to enums *variants*",
                 sp,
+            ));
+        } else if let Some((_check_start, sp)) = check_start {
+            return Err(compile_error_at(
+              "`check_start` attribute can only be applied to enums *variants*",
+              sp,
             ));
         }
 

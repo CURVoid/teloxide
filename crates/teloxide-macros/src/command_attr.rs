@@ -17,6 +17,7 @@ pub(crate) struct CommandAttrs {
     pub rename: Option<(String, Span)>,
     pub parser: Option<(ParserType, Span)>,
     pub separator: Option<(String, Span)>,
+    pub check_start: Option<((), Span)>,
     pub hide: Option<((), Span)>,
 }
 
@@ -42,7 +43,23 @@ enum CommandAttrKind {
     Rename(String),
     ParseWith(ParserType),
     Separator(String),
+    CheckStart,
     Hide,
+}
+
+impl Default for CommandAttrs {
+  fn default() -> Self {
+    Self {
+      prefix: None,
+      description: None,
+      rename_rule: None,
+      rename: None,
+      parser: None,
+      separator: None,
+      check_start: None,
+      hide: None,
+    }
+  }
 }
 
 impl CommandAttrs {
@@ -53,15 +70,7 @@ impl CommandAttrs {
             attributes,
             is_command_attribute,
             CommandAttr::parse,
-            Self {
-                prefix: None,
-                description: None,
-                rename_rule: None,
-                rename: None,
-                parser: None,
-                separator: None,
-                hide: None,
-            },
+            Self::default(),
             |mut this, attr| {
                 fn insert<T>(opt: &mut Option<(T, Span)>, x: T, sp: Span) -> Result<()> {
                     match opt {
@@ -80,6 +89,7 @@ impl CommandAttrs {
                     Rename(r) => insert(&mut this.rename, r, attr.sp),
                     ParseWith(p) => insert(&mut this.parser, p, attr.sp),
                     Separator(s) => insert(&mut this.separator, s, attr.sp),
+                    CheckStart => insert(&mut this.check_start, (), attr.sp),
                     Hide => insert(&mut this.hide, (), attr.sp),
                 }?;
 
@@ -104,6 +114,7 @@ impl CommandAttr {
             "rename" => Rename(value.expect_string()?),
             "parse_with" => ParseWith(ParserType::parse(value)?),
             "separator" => Separator(value.expect_string()?),
+            "check_start" => CheckStart,
             "hide" => Hide,
             _ => {
                 return Err(compile_error_at(

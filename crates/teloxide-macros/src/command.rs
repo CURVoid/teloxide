@@ -14,6 +14,8 @@ pub(crate) struct Command {
     pub name: String,
     /// Parser for arguments of this command.
     pub parser: ParserType,
+    /// Whether to check only start of the command
+    pub check_start: bool,
     /// Whether the command is hidden from the help message.
     pub hidden: bool,
 }
@@ -33,6 +35,7 @@ impl Command {
             parser,
             // FIXME: error on/do not ignore separator
             separator: _,
+            check_start,
             hide,
         } = attrs;
 
@@ -50,9 +53,10 @@ impl Command {
 
         let prefix = prefix.map(|(p, _)| p).unwrap_or_else(|| global_options.prefix.clone());
         let parser = parser.map(|(p, _)| p).unwrap_or_else(|| global_options.parser_type.clone());
+        let check_start = check_start.is_some();
         let hidden = hide.is_some();
 
-        Ok(Self { prefix, description, parser, name, hidden })
+        Ok(Self { prefix, description, parser, name, check_start, hidden })
     }
 
     pub fn get_prefixed_command(&self) -> String {
